@@ -2,6 +2,12 @@
 
 Modern full-stack furniture store (Next.js 14 + Prisma + Postgres + NextAuth + Cloudinary + Shadcn UI + Tailwind + Framer Motion).
 
+## Showcase mode (no backend)
+
+- By default, if `DATABASE_URL` is not set, the site runs in showcase mode using mock catalog data.
+- You can also force it with `SHOWCASE_MODE=1`.
+- Admin + database-backed catalogue are disabled in showcase mode.
+
 ## 1) Setup
 
 1. Copy env file: `copy .env.example .env`
@@ -36,9 +42,8 @@ Modern full-stack furniture store (Next.js 14 + Prisma + Postgres + NextAuth + C
 1. Push this repo to GitHub (already set up for `main`).
 2. Import into Vercel.
 3. Add Environment Variables in Vercel:
-   - `DATABASE_URL`
-   - `NEXTAUTH_SECRET`
-   - `NEXTAUTH_URL` (set to your deployed domain)
+   - (Showcase) none required, or set `SHOWCASE_MODE=1`
+   - (Backend) `DATABASE_URL`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL` (set to your deployed domain)
    - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` (optional, for admin uploads)
    - `NEXT_PUBLIC_WHATSAPP_PHONE_E164` (optional)
 4. Deploy. Build runs `npm run vercel-build` (includes `prisma migrate deploy`).

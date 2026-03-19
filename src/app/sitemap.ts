@@ -1,13 +1,10 @@
 import type { MetadataRoute } from "next";
-import { prisma } from "@/lib/prisma";
+import { getCatalogData } from "@/lib/store";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
 
-  const products = await prisma.product.findMany({
-    where: { isActive: true },
-    select: { slug: true, updatedAt: true }
-  });
+  const { products } = await getCatalogData({});
 
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: `${base}/`, lastModified: new Date() },
@@ -18,9 +15,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const productRoutes: MetadataRoute.Sitemap = products.map((p) => ({
     url: `${base}/product/${p.slug}`,
-    lastModified: p.updatedAt
+    lastModified: new Date(p.updatedAt)
   }));
 
   return [...staticRoutes, ...productRoutes];
 }
-

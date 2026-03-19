@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/prisma";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 export const dynamic = "force-dynamic";
 
 export default async function AdminDashboard() {
+  const prisma = getPrisma();
   const [products, categories, enquiries] = await Promise.all([
     prisma.product.count(),
     prisma.category.count(),

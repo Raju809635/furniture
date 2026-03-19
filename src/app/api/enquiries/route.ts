@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/require-admin";
+import { isDbEnabled } from "@/lib/backend";
+import { getPrisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +20,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid payload", issues: parsed.error.issues }, { status: 400 });
   }
 
+  if (!isDbEnabled()) {
+    return NextResponse.json({ ok: true, id: "showcase" }, { status: 201 });
+  }
+
+  const prisma = getPrisma();
   const created = await prisma.enquiry.create({
     data: {
       name: parsed.data.name.trim(),
@@ -33,9 +39,9 @@ export async function POST(req: Request) {
 
 export async function GET() {
   const session = await requireAdmin();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!session) return NextResponse.json({ error: "Admin backend disabled" }, { status: 501 });
 
+  const prisma = getPrisma();
   const enquiries = await prisma.enquiry.findMany({ orderBy: { createdAt: "desc" } });
   return NextResponse.json(enquiries);
 }
-

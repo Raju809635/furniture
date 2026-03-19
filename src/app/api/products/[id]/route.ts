@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/require-admin";
 import { slugify } from "@/lib/slug";
+import { getPrisma } from "@/lib/prisma";
+import { isDbEnabled } from "@/lib/backend";
+import { mockCategories, mockProducts } from "@/data/catalog";
 
 export const dynamic = "force-dynamic";
 
@@ -21,20 +23,53 @@ const patchSchema = z.object({
 });
 
 export async function GET(_req: Request, { params }: { params: { id: string } }) {
+  if (!isDbEnabled()) {
+    const product = mockProducts.find((p) => p.id === params.id);
+    if (!product) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    const cat = mockCategories.find((c) => c.slug === product.category.slug);
+    return NextResponse.json({
+      id: product.id,
+      name: product.name,
+      slug: product.slug,
+      description: product.description,
+      priceCents: product.priceCents,
+      currency: product.currency,
+      images: product.images,
+      materials: product.materials ?? null,
+      dimensions: product.dimensions ?? null,
+      isFeatured: product.isFeatured,
+      isActive: product.isActive,
+      categoryId: cat?.id ?? "",
+      category: product.category
+    });
+  }
+
+  const prisma = getPrisma();
   const product = await prisma.product.findUnique({
     where: { id: params.id },
     include: { category: { select: { id: true, name: true, slug: true } } }
   });
   if (!product) return NextResponse.json({ error: "Not found" }, { status: 404 });
   return NextResponse.json({
-    ...product,
-    images: Array.isArray(product.images) ? product.images : (product.images as any)
+    id: product.id,
+    name: product.name,
+    slug: product.slug,
+    description: product.description,
+    priceCents: product.priceCents,
+    currency: product.currency,
+    images: Array.isArray(product.images) ? product.images : (product.images as any),
+    materials: product.materials,
+    dimensions: product.dimensions,
+    isFeatured: product.isFeatured,
+    isActive: product.isActive,
+    categoryId: product.category.id,
+    category: { name: product.category.name, slug: product.category.slug }
   });
 }
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   const session = await requireAdmin();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!session) return NextResponse.json({ error: "Admin backend disabled" }, { status: 501 });
 
   const body = await req.json();
   const parsed = patchSchema.safeParse(body);
@@ -56,15 +91,16 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   if (data.isFeatured !== undefined) update.isFeatured = data.isFeatured;
   if (data.isActive !== undefined) update.isActive = data.isActive;
 
+  const prisma = getPrisma();
   const updated = await prisma.product.update({ where: { id: params.id }, data: update });
   return NextResponse.json(updated);
 }
 
 export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
   const session = await requireAdmin();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!session) return NextResponse.json({ error: "Admin backend disabled" }, { status: 501 });
 
+  const prisma = getPrisma();
   await prisma.product.delete({ where: { id: params.id } });
   return NextResponse.json({ ok: true });
 }
-

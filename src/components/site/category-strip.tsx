@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
+import { getCategories } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 export async function CategoryStrip() {
-  const categories = await prisma.category.findMany({ orderBy: { name: "asc" } });
+  const categories = await getCategories();
   return (
     <section className="container py-10">
       <div className="flex flex-wrap gap-3 rounded-2xl border bg-card p-4 shadow-soft">
@@ -22,4 +22,3 @@ export async function CategoryStrip() {
     </section>
   );
 }
-

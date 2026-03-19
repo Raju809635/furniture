@@ -1,25 +1,19 @@
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
+import { getFeaturedProducts } from "@/lib/store";
 import { ProductGrid } from "@/components/product/product-grid";
 import { Button } from "@/components/ui/button";
 
 export const dynamic = "force-dynamic";
 
 export async function FeaturedProducts() {
-  const products = await prisma.product.findMany({
-    where: { isActive: true, isFeatured: true },
-    orderBy: { createdAt: "desc" },
-    take: 6,
-    include: { category: { select: { name: true, slug: true } } }
-  });
-
+  const products = await getFeaturedProducts(6);
   const mapped = products.map((p) => ({
     id: p.id,
     name: p.name,
     slug: p.slug,
     priceCents: p.priceCents,
     currency: p.currency,
-    images: Array.isArray(p.images) ? (p.images as string[]) : ((p.images as any)?.images ?? []),
+    images: p.images,
     category: p.category,
     isFeatured: p.isFeatured
   }));
@@ -48,4 +42,3 @@ export async function FeaturedProducts() {
     </section>
   );
 }
-

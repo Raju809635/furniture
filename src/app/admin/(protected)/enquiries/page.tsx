@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/prisma";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { EnquiryStatus } from "@/components/admin/enquiry-status";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 export const dynamic = "force-dynamic";
 
 export default async function AdminEnquiriesPage() {
+  const prisma = getPrisma();
   const enquiries = await prisma.enquiry.findMany({ orderBy: { createdAt: "desc" } });
 
   return (

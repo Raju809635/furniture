@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { prisma } from "@/lib/prisma";
 import { formatMoney } from "@/lib/format";
 import { getEnv } from "@/lib/env";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
+import { getProductBySlug } from "@/lib/store";
 import { AddToCartButton } from "@/components/product/add-to-cart";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,12 +18,9 @@ export async function generateMetadata({
 }: {
   params: { slug: string };
 }): Promise<Metadata> {
-  const product = await prisma.product.findUnique({
-    where: { slug: params.slug },
-    select: { name: true, description: true, images: true }
-  });
+  const product = await getProductBySlug(params.slug);
   if (!product) return { title: "Product not found" };
-  const image = Array.isArray(product.images) ? (product.images as string[])[0] : undefined;
+  const image = product.images?.[0];
   return {
     title: product.name,
     description: product.description,
@@ -36,14 +33,12 @@ export async function generateMetadata({
 }
 
 export default async function ProductPage({ params }: { params: { slug: string } }) {
-  const product = await prisma.product.findFirst({
-    where: { slug: params.slug, isActive: true },
-    include: { category: true }
-  });
+  const product = await getProductBySlug(params.slug);
   if (!product) notFound();
 
-  const images = Array.isArray(product.images) ? (product.images as string[]) : ((product.images as any)?.images ?? []);
-  const hero = images[0] ?? "https://images.unsplash.com/photo-1549187774-b4e9b0445b41?auto=format&fit=crop&w=1600&q=80";
+  const hero =
+    product.images?.[0] ??
+    "https://images.unsplash.com/photo-1549187774-b4e9b0445b41?auto=format&fit=crop&w=1600&q=80";
   const price = formatMoney(product.priceCents, product.currency);
 
   const env = getEnv();
@@ -70,9 +65,9 @@ export default async function ProductPage({ params }: { params: { slug: string }
           <div className="relative aspect-[4/3] overflow-hidden rounded-3xl border bg-card shadow-soft">
             <Image src={hero} alt={product.name} fill className="object-cover" priority sizes="(max-width: 1024px) 100vw, 50vw" />
           </div>
-          {images.length > 1 ? (
+          {product.images.length > 1 ? (
             <div className="grid grid-cols-3 gap-3">
-              {images.slice(0, 6).map((src) => (
+              {product.images.slice(0, 6).map((src) => (
                 <div key={src} className="relative aspect-[4/3] overflow-hidden rounded-2xl border bg-card">
                   <Image src={src} alt="" fill className="object-cover" sizes="(max-width: 1024px) 33vw, 16vw" />
                 </div>

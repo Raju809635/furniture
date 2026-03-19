@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/require-admin";
 import { slugify } from "@/lib/slug";
+import { getCatalogData } from "@/lib/store";
+import { getPrisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
@@ -29,33 +30,27 @@ export async function GET(req: Request) {
   const min = url.searchParams.get("min");
   const max = url.searchParams.get("max");
 
-  const where: any = { isActive: true };
-  if (q) where.OR = [{ name: { contains: q, mode: "insensitive" } }, { description: { contains: q, mode: "insensitive" } }];
-  if (category) where.category = { slug: category };
-  if (featured) where.isFeatured = true;
-  if (min || max) {
-    where.priceCents = {};
-    if (min) where.priceCents.gte = Number(min) * 100;
-    if (max) where.priceCents.lte = Number(max) * 100;
-  }
-
-  const products = await prisma.product.findMany({
-    where,
-    orderBy: { createdAt: "desc" },
-    include: { category: { select: { name: true, slug: true } } }
+  const { products } = await getCatalogData({
+    q,
+    category,
+    min: min ?? undefined,
+    max: max ?? undefined,
+    sort: "newest"
   });
 
+  const filtered = featured ? products.filter((p) => p.isFeatured) : products;
+
   return NextResponse.json(
-    products.map((p) => ({
+    filtered.map((p) => ({
       id: p.id,
       name: p.name,
       slug: p.slug,
       description: p.description,
       priceCents: p.priceCents,
       currency: p.currency,
-      images: Array.isArray(p.images) ? p.images : (p.images as any),
-      materials: p.materials,
-      dimensions: p.dimensions,
+      images: p.images,
+      materials: p.materials ?? null,
+      dimensions: p.dimensions ?? null,
       isFeatured: p.isFeatured,
       isActive: p.isActive,
       category: p.category
@@ -65,7 +60,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   const session = await requireAdmin();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!session) return NextResponse.json({ error: "Admin backend disabled" }, { status: 501 });
 
   const body = await req.json();
   const parsed = createSchema.safeParse(body);
@@ -85,6 +80,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Category is required" }, { status: 400 });
   }
 
+  const prisma = getPrisma();
   const created = await prisma.product.create({
     data: {
       name: data.name.trim(),
@@ -103,4 +99,3 @@ export async function POST(req: Request) {
 
   return NextResponse.json(created, { status: 201 });
 }
-

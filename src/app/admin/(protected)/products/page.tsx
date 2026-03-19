@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/prisma";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { ProductActions } from "@/components/admin/product-actions";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { formatMoney } from "@/lib/format";
 export const dynamic = "force-dynamic";
 
 export default async function AdminProductsPage() {
+  const prisma = getPrisma();
   const products = await prisma.product.findMany({
     orderBy: { createdAt: "desc" },
     include: { category: { select: { name: true } } }
