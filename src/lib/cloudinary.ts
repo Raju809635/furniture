@@ -1,8 +1,9 @@
 import crypto from "crypto";
 import { v2 as cloudinary } from "cloudinary";
-import { env } from "@/lib/env";
+import { getEnv, requireEnv } from "@/lib/env";
 
 export function configureCloudinary() {
+  const env = getEnv();
   if (!env.CLOUDINARY_CLOUD_NAME || !env.CLOUDINARY_API_KEY || !env.CLOUDINARY_API_SECRET) {
     return null;
   }
@@ -15,7 +16,7 @@ export function configureCloudinary() {
 }
 
 export function cloudinarySignature(paramsToSign: Record<string, string | number>) {
-  if (!env.CLOUDINARY_API_SECRET) throw new Error("CLOUDINARY_API_SECRET not configured");
+  const apiSecret = requireEnv("CLOUDINARY_API_SECRET");
 
   const sorted = Object.entries(paramsToSign)
     .sort(([a], [b]) => a.localeCompare(b))
@@ -24,9 +25,8 @@ export function cloudinarySignature(paramsToSign: Record<string, string | number
 
   const signature = crypto
     .createHash("sha1")
-    .update(sorted + env.CLOUDINARY_API_SECRET)
+    .update(sorted + apiSecret)
     .digest("hex");
 
   return signature;
 }
-

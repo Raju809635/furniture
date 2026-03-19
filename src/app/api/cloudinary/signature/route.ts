@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { env } from "@/lib/env";
+import { getEnv } from "@/lib/env";
 import { cloudinarySignature } from "@/lib/cloudinary";
 import { requireAdmin } from "@/lib/require-admin";
 
@@ -15,6 +15,7 @@ export async function POST(req: Request) {
   const session = await requireAdmin();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const env = getEnv();
   if (!env.CLOUDINARY_CLOUD_NAME || !env.CLOUDINARY_API_KEY || !env.CLOUDINARY_API_SECRET) {
     return NextResponse.json({ error: "Cloudinary not configured" }, { status: 400 });
   }
@@ -39,4 +40,3 @@ export async function POST(req: Request) {
     folder: folder ?? "woodnest/products"
   });
 }
-

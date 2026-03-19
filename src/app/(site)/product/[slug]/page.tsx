@@ -4,7 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { formatMoney } from "@/lib/format";
-import { env } from "@/lib/env";
+import { getEnv } from "@/lib/env";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
 import { AddToCartButton } from "@/components/product/add-to-cart";
 import { Button } from "@/components/ui/button";
@@ -46,6 +46,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
   const hero = images[0] ?? "https://images.unsplash.com/photo-1549187774-b4e9b0445b41?auto=format&fit=crop&w=1600&q=80";
   const price = formatMoney(product.priceCents, product.currency);
 
+  const env = getEnv();
   const whatsappPhone = env.WHATSAPP_PHONE_E164 ?? env.NEXT_PUBLIC_WHATSAPP_PHONE_E164 ?? "";
   const whatsappMessage = `Hi WoodNest Interiors, I'm interested in "${product.name}" (${price}). Please share availability and delivery details.`;
   const whatsappLink = whatsappPhone ? buildWhatsAppLink(whatsappPhone, whatsappMessage) : null;
