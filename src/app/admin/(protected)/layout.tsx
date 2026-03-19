@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import type * as React from "react";
 import { requireAdmin } from "@/lib/require-admin";
 
 export default async function ProtectedAdminLayout({
@@ -10,4 +11,3 @@ export default async function ProtectedAdminLayout({
   if (!session) redirect("/admin/login");
   return <>{children}</>;
 }
-

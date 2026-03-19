@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type * as React from "react";
 import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
@@ -33,4 +34,3 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
-

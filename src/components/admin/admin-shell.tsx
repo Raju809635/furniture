@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type * as React from "react";
 import { AdminUserMenu } from "@/components/admin/admin-user-menu";
 import { Logo } from "@/components/site/logo";
 import { cn } from "@/lib/utils";
@@ -45,4 +46,3 @@ export function AdminShell({
     </div>
   );
 }
-

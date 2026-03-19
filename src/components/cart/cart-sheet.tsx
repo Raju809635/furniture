@@ -1,5 +1,6 @@
 "use client";
 
+import type * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -87,4 +88,3 @@ export function CartSheet({ trigger }: { trigger: React.ReactNode }) {
     </Sheet>
   );
 }
-
