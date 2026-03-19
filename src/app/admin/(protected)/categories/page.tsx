@@ -1,6 +1,8 @@
 import { AdminShell } from "@/components/admin/admin-shell";
 import { CategoryManager } from "@/components/admin/category-manager";
 
+export const dynamic = "force-dynamic";
+
 export default function AdminCategoriesPage() {
   return (
     <AdminShell active="/admin/categories">
