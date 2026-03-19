@@ -45,12 +45,10 @@ export function getAuthOptions(): NextAuthOptions {
       async session({ session, user }) {
         if (session.user) {
           session.user.id = user.id;
-          // @ts-expect-error role is added via types augmentation
-          session.user.role = (user as any).role ?? "ADMIN";
+          session.user.role = ((user as any).role ?? "ADMIN") as any;
         }
         return session;
       }
     }
   };
 }
-
