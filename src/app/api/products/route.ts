@@ -71,6 +71,7 @@ export async function POST(req: Request) {
   const data = parsed.data;
   const slug = slugify(data.slug?.trim() || data.name);
 
+  const prisma = getPrisma();
   let categoryId = data.categoryId;
   if (!categoryId && data.categorySlug) {
     const category = await prisma.category.findUnique({ where: { slug: data.categorySlug } });
@@ -80,7 +81,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Category is required" }, { status: 400 });
   }
 
-  const prisma = getPrisma();
   const created = await prisma.product.create({
     data: {
       name: data.name.trim(),
